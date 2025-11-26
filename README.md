@@ -1,3 +1,9 @@
+# Official Repository for Output Supervision Can Obfuscate the Chain of Thought
+
+This repository supports:
+1. Post-training language models to demonstrate feedback spillover
+2. Training language models with the mitigations introduced in our paper
+
 ## 1. Root-Level Layout
 
 | Path                       | Purpose |
@@ -7,11 +13,8 @@
 | `tests/`                   | Unit tests covering critical utilities and pipelines. |
 | `rollouts/`                | (git-ignored)  Serialized rollout data produced during training. |
 | `wandb/`                   | (git-ignored)  Weights & Biases logs. |
-| `pyproject.toml`           | Build metadata (PEP 621). |
 | `requirements.txt`         | Locked dependency list used by `setup.sh`. |
 | `README.md`                | You are here. |
-
-> All other hidden folders (`.git/`, `.pytest_cache/`, `.venv/`, etc.) are standard tooling artefacts and contain no project logic.
 
 ---
 ## 2. Source Package – `src/`
@@ -29,14 +32,14 @@ src/
 ### 2.1 `generation/`
 File | Responsibility
 ---- | --------------
-`prompt_builder.py` | Converts raw tasks (e.g. MMLU questions) into **model-ready prompts**. Also houses configurable templates.
+`prompt_builder.py` | Converts raw task inputs (e.g. MMLU questions) into prompts. Also houses configurable templates.
 `logit_processors.py` | Custom `transformers.LogitsProcessor` subclasses (e.g. masking, biasing) applied during generation.
 
 ### 2.2 `reward/`
 File | Responsibility
 ---- | --------------
 `base.py` | Abstract `Reward` base class defining the scoring interface.
-`registry.py` | **Dynamic factory** mapping `reward_name ➜ class`.
+`registry.py` | Dynamic factory mapping `reward_name ➜ class`.
 `boxed_answer_reward.py` | Rewards exact matches inside a bounding box.
 `regex_reward.py` | Regex-based matcher for flexible string scoring.
 `judge_reward.py` | Delegates scoring to an external LLM “judge”.
@@ -44,7 +47,7 @@ File | Responsibility
 ### 2.3 `trainer/`
 File | Responsibility
 ---- | --------------
-`reinforce_trainer.py` | Core **policy-gradient (REINFORCE)** training loop.
+`reinforce_trainer.py` | Core REINFORCE training loop.
 `rollout_store.py` | Simple in-memory buffer → persisted into `rollouts/`.
 
 ### 2.4 `config/`
@@ -68,17 +71,4 @@ File | Responsibility
 ---
 ## 4. Test Suite
 
-`tests/` contains **pytest**-based validation for registry loading, prompt generation, masking logic, and utility functions.  These tests are valuable examples of expected behaviours.
-
----
-## 6. Extensibility Signals
-
-LLM agents can introspect the following single-source-of-truth points:
-
-Key Symbol | Location | Role
------------|----------|-----
-`RewardRegistry` | `src/reward/registry.py` | Maps string → reward class.
-`PromptBuilder.generate()` | `src/generation/prompt_builder.py` | Last mile prompt assembly.
-`ReinforceTrainer.train()` | `src/trainer/reinforce_trainer.py` | Main training loop.
-
-These are the safest hooks for code modification or reflection.
+`tests/` contains pytest-based validation for registry loading, prompt generation, masking logic, and utility functions.
